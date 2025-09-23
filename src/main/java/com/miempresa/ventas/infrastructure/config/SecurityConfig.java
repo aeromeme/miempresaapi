@@ -19,6 +19,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> {})  // Habilitar CORS usando configuración por defecto
             .authorizeHttpRequests(authz -> authz
                 .anyRequest().permitAll()  // Permitir todas las requests sin autenticación
             )
