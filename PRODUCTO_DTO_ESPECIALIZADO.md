@@ -12,7 +12,6 @@ Se han creado DTOs específicos para diferentes operaciones CRUD de productos, m
 **Características**:
 
 - ❌ **No incluye ID** (se genera automáticamente)
-- ❌ **No incluye moneda** (usa la configurada por defecto)
 - ✅ **Campos esenciales obligatorios**
 - ✅ **Validaciones completas** con Bean Validation
 
@@ -21,7 +20,6 @@ Se han creado DTOs específicos para diferentes operaciones CRUD de productos, m
   "nombre": "Laptop Dell Inspiron",     // @NotBlank, @Size(2-200)
   "precio": 1250.50,                   // @NotNull, @DecimalMin(0.01)
   "stock": 15                          // @Min(0)
-  // ❌ NO incluye moneda - usa la por defecto configurada
 }
 ```
 
@@ -32,7 +30,6 @@ Se han creado DTOs específicos para diferentes operaciones CRUD de productos, m
 
 - ✅ **Todos los campos son opcionales**
 - ✅ **Solo actualiza campos proporcionados**
-- ❌ **NO permite cambiar la moneda** (regla de negocio)
 - ✅ **Validaciones cuando se proporcionan valores**
 
 ```java
@@ -40,7 +37,6 @@ Se han creado DTOs específicos para diferentes operaciones CRUD de productos, m
   "nombre": "Nuevo nombre",            // Opcional, @Size(2-200)
   "precio": 1199.99,                  // Opcional, @DecimalMin(0.01)
   "stock": 20                         // Opcional, @Min(0)
-  // ❌ NO incluye moneda - no se puede cambiar después de creado
 }
 ```
 
@@ -58,7 +54,6 @@ Se han creado DTOs específicos para diferentes operaciones CRUD de productos, m
   "id": "550e8400-e29b-41d4-a716-446655440001",
   "nombre": "Laptop Dell Inspiron",
   "precio": 1250.50,
-  "moneda": "USD",
   "stock": 15
 }
 ```
@@ -74,7 +69,6 @@ Content-Type: application/json
 {
   "nombre": "Smartphone Samsung Galaxy S24",
   "precio": 899.99,
-  "moneda": "USD",
   "stock": 25
 }
 ```
@@ -86,7 +80,6 @@ Content-Type: application/json
   "id": "123e4567-e89b-12d3-a456-426614174000",
   "nombre": "Smartphone Samsung Galaxy S24",
   "precio": 899.99,
-  "moneda": "USD",
   "stock": 25
 }
 ```
@@ -110,51 +103,7 @@ Content-Type: application/json
   "id": "123e4567-e89b-12d3-a456-426614174000",
   "nombre": "Smartphone Samsung Galaxy S24", // ← Mantiene valor anterior
   "precio": 849.99, // ← Actualizado
-  "moneda": "USD", // ← Mantiene valor anterior
   "stock": 30 // ← Actualizado
-}
-```
-
-## 🔒 Regla de Negocio: Moneda Inmutable
-
-### **¿Por qué la moneda no se puede actualizar?**
-
-Una vez que un producto es creado con una moneda específica, **NO se puede cambiar** por las siguientes razones de negocio:
-
-1. **Integridad de Historial**: Los precios históricos perderían su contexto si se cambia la moneda
-2. **Ventas Existentes**: Las ventas ya realizadas referencian el producto con su moneda original
-3. **Reportes Financieros**: Los reportes de ingresos dependen de monedas consistentes
-4. **Auditoría**: Mantiene la trazabilidad de los datos financieros
-5. **Simplicidad**: Evita conversiones complejas de divisas en el sistema
-
-### **¿Cómo cambiar la moneda de un producto?**
-
-Si necesitas un producto con diferente moneda, debes:
-
-1. **Crear un nuevo producto** con la moneda deseada
-2. **Desactivar/eliminar** el producto anterior (si es necesario)
-3. **Migrar stock** del producto anterior al nuevo (proceso manual)
-
-### **Ejemplo de Migración**
-
-```http
-# 1. Crear nuevo producto con moneda GTQ
-POST /api/productos
-{
-  "nombre": "Laptop Dell Inspiron (GTQ)",
-  "precio": 9750.00,
-  "stock": 0
-}
-
-# 2. Transferir stock manualmente del producto USD al GTQ
-PUT /api/productos/{old-product-id}
-{
-  "stock": 0
-}
-
-PUT /api/productos/{new-product-id}
-{
-  "stock": 15
 }
 ```
 
@@ -162,18 +111,16 @@ PUT /api/productos/{new-product-id}
 
 ### Bean Validation Annotations
 
-| Campo    | Crear                        | Actualizar      | Validaciones                                     |
-| -------- | ---------------------------- | --------------- | ------------------------------------------------ |
-| `nombre` | ✅ Obligatorio               | ⚪ Opcional     | `@NotBlank`, `@Size(2-200)`                      |
-| `precio` | ✅ Obligatorio               | ⚪ Opcional     | `@NotNull`, `@DecimalMin(0.01)`, `@Digits(15,4)` |
-| `moneda` | ❌ No incluido (por defecto) | ❌ No permitido | Configurada por defecto, inmutable               |
-| `stock`  | ✅ Obligatorio               | ⚪ Opcional     | `@Min(0)`                                        |
+| Campo    | Crear          | Actualizar  | Validaciones                                     |
+| -------- | -------------- | ----------- | ------------------------------------------------ |
+| `nombre` | ✅ Obligatorio | ⚪ Opcional | `@NotBlank`, `@Size(2-200)`                      |
+| `precio` | ✅ Obligatorio | ⚪ Opcional | `@NotNull`, `@DecimalMin(0.01)`, `@Digits(15,4)` |
+| `stock`  | ✅ Obligatorio | ⚪ Opcional | `@Min(0)`                                        |
 
 ### Mensajes de Error Personalizados
 
 - **Nombre vacío**: "El nombre del producto es obligatorio"
 - **Precio inválido**: "El precio debe ser mayor a 0"
-- **Moneda inválida**: "Moneda no válida. Debe ser una de: USD, GTQ, BZD, HNL, NIO, CRC, PAB"
 - **Stock negativo**: "El stock no puede ser negativo"
 
 ## Beneficios de esta Implementación

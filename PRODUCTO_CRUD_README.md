@@ -22,10 +22,7 @@ Se ha implementado un CRUD completo para la entidad `Producto` siguiendo los pri
 
 #### 3. **Capa de Infraestructura** (`infrastructure/`)
 
-- **`ProductoJpaEntity.java`**: Entidad JPA para persistencia
-- **`ProductoJpaRepository.java`**: Repository JPA con Spring Data
-- **`ProductoJpaMapper.java`**: Convierte entre dominio y entidades JPA
-- **`ProductoRepositoryImpl.java`**: Implementación del repository de dominio
+- **`ProductoRepository.java`**: Implementación Spring Data JPA del repositorio
 - **`ProductoController.java`**: Controller REST con documentación Swagger
 
 ## 📋 Operaciones CRUD Disponibles
@@ -52,7 +49,6 @@ Content-Type: application/json
 {
   "nombre": "Laptop Dell Inspiron",
   "precio": 1250.50,
-  "moneda": "USD",
   "stock": 15
 }
 ```
@@ -66,7 +62,6 @@ Content-Type: application/json
 {
   "nombre": "Laptop Dell Inspiron 15 (Actualizada)",
   "precio": 1199.99,
-  "moneda": "USD",
   "stock": 20
 }
 ```
@@ -75,17 +70,16 @@ Content-Type: application/json
 
 ### ✅ Funcionalidades de Dominio
 
-- **Value Objects**: `ProductoId`, `Precio`, `Moneda`
+- **Value Objects**: `ProductoId`, `Precio`
 - **Validaciones de dominio**: nombre requerido, precio positivo, stock no negativo
 - **Lógica de negocio**: operaciones de stock, cálculo de totales
-- **Monedas soportadas**: USD, GTQ, BZD, HNL, NIO, CRC, PAB
 
 ### ✅ Persistencia JPA
 
-- **Entidad JPA**: `ProductoJpaEntity` con mapeo de tabla `productos`
+- **Entidad de Dominio**: `Producto` mapeada directamente a la tabla `productos`
 - **Optimistic Locking**: Control de concurrencia con `@Version`
 - **Consultas customizadas**: Búsqueda por nombre, filtro por stock
-- **Mapeo de Value Objects**: Precio separado en valor y moneda
+- **Value Objects**: Mapeo directo de value objects como tipos simples
 
 ### ✅ API REST
 
@@ -97,8 +91,8 @@ Content-Type: application/json
 ### ✅ Mapeo de Datos
 
 - **Mapper de aplicación**: Entre dominio y DTOs
-- **Mapper de infraestructura**: Entre dominio y entidades JPA
-- **Conversión de tipos**: UUID ↔ String, BigDecimal, enums
+- **Conversión de tipos**: UUID ↔ String, BigDecimal
+- **Mapeo directo**: Entidad de dominio ↔ Base de datos
 
 ## 🗄️ Estructura de Base de Datos
 
@@ -108,8 +102,7 @@ Content-Type: application/json
 CREATE TABLE productos (
     id UUID PRIMARY KEY,
     nombre VARCHAR(200) NOT NULL,
-    precio_valor DECIMAL(19,4) NOT NULL,
-    precio_moneda VARCHAR(3) NOT NULL,
+    precio DECIMAL(19,4) NOT NULL,
     stock INTEGER NOT NULL,
     version BIGINT -- Para optimistic locking
 );
