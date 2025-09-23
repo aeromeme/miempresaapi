@@ -5,6 +5,7 @@ import com.miempresa.ventas.domain.valueobject.ClienteId;
 import com.miempresa.ventas.domain.valueobject.Precio;
 import com.miempresa.ventas.domain.valueobject.Result;
 import com.miempresa.ventas.domain.exception.DomainException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -112,18 +113,17 @@ public class Venta extends BaseEntity {
     
     public Result<Precio> calcularTotal() {
         if (lineasVenta.isEmpty()) {
-            return Result.success(Precio.ofUSD(0));
+            return Result.success(new Precio(BigDecimal.ZERO));
         }
         
         try {
-            Precio primerPrecio = lineasVenta.get(0).getTotal();
-            Precio total = Precio.of(0, primerPrecio.getMoneda());
+            BigDecimal totalValor = BigDecimal.ZERO;
             
             for (LineaVenta linea : lineasVenta) {
-                total = total.sumar(linea.getTotal());
+                totalValor = totalValor.add(linea.getTotal().getValor());
             }
             
-            return Result.success(total);
+            return Result.success(new Precio(totalValor));
         } catch (Exception e) {
             return Result.failure("Error al calcular el total: " + e.getMessage());
         }

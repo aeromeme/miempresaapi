@@ -4,12 +4,27 @@ import com.miempresa.ventas.domain.valueobject.ProductoId;
 import com.miempresa.ventas.domain.valueobject.Precio;
 import com.miempresa.ventas.domain.valueobject.Result;
 import com.miempresa.ventas.domain.exception.DomainException;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "productos")
 public class Producto extends BaseEntity {
+    @EmbeddedId
     private ProductoId id;
+    
+    @Column(name = "nombre", nullable = false, length = 255)
     private String nombre;
+    
+    @Embedded
     private Precio precio;
+    
+    @Column(name = "stock", nullable = false)
     private int stock;
+    
+    // Constructor para JPA
+    protected Producto() {
+        // Constructor requerido por JPA
+    }
     
     // Constructor para crear nuevo producto
     public Producto(String nombre, Precio precio, int stock) {

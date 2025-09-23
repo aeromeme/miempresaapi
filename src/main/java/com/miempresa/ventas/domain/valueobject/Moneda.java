@@ -2,8 +2,9 @@ package com.miempresa.ventas.domain.valueobject;
 
 import java.util.Currency;
 
+// Value object para moneda - NO persistido en BD, viene de configuración
 public class Moneda extends ValueObject {
-    private final Currency currency;
+    private final String currencyCode;
     
     // Monedas de Centroamérica
     public static final Moneda GTQ = new Moneda("GTQ"); // Guatemala - Quetzal
@@ -20,7 +21,9 @@ public class Moneda extends ValueObject {
         }
         
         try {
-            this.currency = Currency.getInstance(currencyCode.toUpperCase());
+            // Validamos que el código de moneda sea válido
+            Currency.getInstance(currencyCode.toUpperCase());
+            this.currencyCode = currencyCode.toUpperCase();
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Código de moneda inválido: " + currencyCode);
         }
@@ -30,7 +33,7 @@ public class Moneda extends ValueObject {
         if (currency == null) {
             throw new IllegalArgumentException("La moneda no puede ser null");
         }
-        this.currency = currency;
+        this.currencyCode = currency.getCurrencyCode();
     }
     
     public static Moneda of(String currencyCode) {
@@ -38,23 +41,23 @@ public class Moneda extends ValueObject {
     }
     
     public String getCurrencyCode() {
-        return currency.getCurrencyCode();
+        return currencyCode;
     }
     
     public String getDisplayName() {
-        return currency.getDisplayName();
+        return getCurrency().getDisplayName();
     }
     
     public String getSymbol() {
-        return currency.getSymbol();
+        return getCurrency().getSymbol();
     }
     
     public int getDefaultFractionDigits() {
-        return currency.getDefaultFractionDigits();
+        return getCurrency().getDefaultFractionDigits();
     }
     
     public Currency getCurrency() {
-        return currency;
+        return Currency.getInstance(currencyCode);
     }
     
     public boolean isCompatible(Moneda otra) {
@@ -66,16 +69,16 @@ public class Moneda extends ValueObject {
         if (this == obj) return true;
         if (!(obj instanceof Moneda)) return false;
         Moneda that = (Moneda) obj;
-        return areEqual(this.currency, that.currency);
+        return areEqual(this.currencyCode, that.currencyCode);
     }
     
     @Override
     public int hashCode() {
-        return hashOf(currency);
+        return hashOf(currencyCode);
     }
     
     @Override
     public String toString() {
-        return currency.getCurrencyCode();
+        return currencyCode;
     }
 }

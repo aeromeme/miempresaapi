@@ -65,7 +65,6 @@ CREATE OR REPLACE FUNCTION obtener_ventas_cliente(
     venta_id UUID,
     fecha TIMESTAMP WITH TIME ZONE,
     total_valor DECIMAL(12,2),
-    total_moneda VARCHAR(3),
     cantidad_productos BIGINT
 ) AS $$
 BEGIN
@@ -74,14 +73,13 @@ BEGIN
         v.id as venta_id,
         v.fecha,
         v.total_valor,
-        v.total_moneda,
         COUNT(lv.id) as cantidad_productos
     FROM ventas v
     LEFT JOIN lineas_venta lv ON v.id = lv.venta_id
     WHERE v.cliente_id = p_cliente_id
         AND (p_fecha_inicio IS NULL OR v.fecha >= p_fecha_inicio)
         AND (p_fecha_fin IS NULL OR v.fecha <= p_fecha_fin)
-    GROUP BY v.id, v.fecha, v.total_valor, v.total_moneda
+    GROUP BY v.id, v.fecha, v.total_valor
     ORDER BY v.fecha DESC;
 END;
 $$ LANGUAGE plpgsql;
@@ -97,8 +95,7 @@ CREATE OR REPLACE FUNCTION productos_mas_vendidos(
     producto_id UUID,
     nombre_producto VARCHAR(200),
     cantidad_vendida BIGINT,
-    total_ingresos DECIMAL(12,2),
-    moneda VARCHAR(3)
+    total_ingresos DECIMAL(12,2)
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -106,45 +103,19 @@ BEGIN
         p.id as producto_id,
         p.nombre as nombre_producto,
         SUM(lv.cantidad) as cantidad_vendida,
-        SUM(lv.total_valor) as total_ingresos,
-        lv.total_moneda as moneda
+        SUM(lv.total_valor) as total_ingresos
     FROM productos p
     INNER JOIN lineas_venta lv ON p.id = lv.producto_id
     INNER JOIN ventas v ON lv.venta_id = v.id
     WHERE (p_fecha_inicio IS NULL OR v.fecha >= p_fecha_inicio)
         AND (p_fecha_fin IS NULL OR v.fecha <= p_fecha_fin)
-    GROUP BY p.id, p.nombre, lv.total_moneda
+    GROUP BY p.id, p.nombre
     ORDER BY cantidad_vendida DESC
     LIMIT p_limite;
 END;
 $$ LANGUAGE plpgsql;
 
--- =====================================================
--- Función: Reporte de ventas por moneda
--- =====================================================
-CREATE OR REPLACE FUNCTION reporte_ventas_por_moneda(
-    p_fecha_inicio TIMESTAMP WITH TIME ZONE DEFAULT NULL,
-    p_fecha_fin TIMESTAMP WITH TIME ZONE DEFAULT NULL
-) RETURNS TABLE (
-    moneda VARCHAR(3),
-    total_ventas BIGINT,
-    total_ingresos DECIMAL(12,2),
-    promedio_venta DECIMAL(12,2)
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        v.total_moneda as moneda,
-        COUNT(v.id) as total_ventas,
-        SUM(v.total_valor) as total_ingresos,
-        AVG(v.total_valor) as promedio_venta
-    FROM ventas v
-    WHERE (p_fecha_inicio IS NULL OR v.fecha >= p_fecha_inicio)
-        AND (p_fecha_fin IS NULL OR v.fecha <= p_fecha_fin)
-    GROUP BY v.total_moneda
-    ORDER BY total_ingresos DESC;
-END;
-$$ LANGUAGE plpgsql;
+
 
 -- =====================================================
 -- Procedimiento: Procesar venta completa
@@ -163,7 +134,6 @@ DECLARE
     producto_id_item UUID;
     cantidad_item INTEGER;
     precio_producto DECIMAL(12,2);
-    moneda_producto VARCHAR(3);
     stock_suficiente BOOLEAN;
 BEGIN
     -- Crear nueva venta
@@ -178,8 +148,8 @@ BEGIN
         cantidad_item := (producto_item->>'cantidad')::INTEGER;
         
         -- Obtener precio y verificar stock
-        SELECT precio_valor, precio_moneda, verificar_stock_disponible(id, cantidad_item)
-        INTO precio_producto, moneda_producto, stock_suficiente
+        SELECT precio_valor, verificar_stock_disponible(id, cantidad_item)
+        INTO precio_producto, stock_suficiente
         FROM productos 
         WHERE id = producto_id_item;
         
@@ -199,8 +169,8 @@ BEGIN
         END IF;
         
         -- Agregar línea de venta
-        INSERT INTO lineas_venta (venta_id, producto_id, cantidad, precio_unitario_valor, precio_unitario_moneda)
-        VALUES (nueva_venta_id, producto_id_item, cantidad_item, precio_producto, moneda_producto);
+        INSERT INTO lineas_venta (venta_id, producto_id, cantidad, precio_unitario_valor)
+        VALUES (nueva_venta_id, producto_id_item, cantidad_item, precio_producto);
     END LOOP;
     
     RETURN QUERY SELECT TRUE, nueva_venta_id, 'Venta procesada exitosamente';
@@ -215,7 +185,6 @@ SELECT
     p.id,
     p.nombre,
     p.precio_valor,
-    p.precio_moneda,
     p.stock,
     p.stock * p.precio_valor as valor_inventario,
     CASE 
@@ -237,13 +206,12 @@ SELECT
     c.nombre as cliente_nombre,
     c.correo as cliente_correo,
     v.total_valor,
-    v.total_moneda,
     COUNT(lv.id) as cantidad_productos
 FROM ventas v
 INNER JOIN clientes c ON v.cliente_id = c.id
 LEFT JOIN lineas_venta lv ON v.id = lv.venta_id
 WHERE DATE(v.fecha) = CURRENT_DATE
-GROUP BY v.id, v.fecha, c.nombre, c.correo, v.total_valor, v.total_moneda
+GROUP BY v.id, v.fecha, c.nombre, c.correo, v.total_valor
 ORDER BY v.fecha DESC;
 
 -- =====================================================
