@@ -5,31 +5,59 @@ import com.miempresa.ventas.domain.valueobject.Email;
 import com.miempresa.ventas.domain.valueobject.Result;
 import com.miempresa.ventas.domain.exception.DomainException;
 
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "clientes")
 public class Cliente extends BaseEntity {
-    private ClienteId id;
+    
+    @Id
+    @Column(name = "id", columnDefinition = "UUID")
+    private UUID id;
+    
+    @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
-    private Email correo;
     
-    // Constructor para crear nuevo cliente
+    @Column(name = "correo", nullable = false, unique = true, length = 255)
+    private String correo;
+    
+    @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at", insertable = false, updatable = false)
+    private LocalDateTime updatedAt;
+    
+    // Constructor para JPA (protegido para que solo lo use el ORM)
+    protected Cliente() {
+        // Los timestamps son manejados por la BD
+    }
+    
+    // Constructor para crear nuevo cliente (dominio)
     public Cliente(String nombre, Email correo) {
-        this.id = ClienteId.generate();
+        this(); // Llama al constructor de JPA
+        this.id = UUID.randomUUID();
         this.setNombre(nombre);
         this.setCorreo(correo);
     }
     
-    // Constructor para reconstruir desde persistencia
+    // Constructor para reconstruir desde persistencia (dominio)
     public Cliente(ClienteId id, String nombre, Email correo) {
-        this.id = id;
+        this(); // Llama al constructor de JPA
+        this.id = id.getValue();
         this.setNombre(nombre);
         this.setCorreo(correo);
     }
+    
+    // ===== LÓGICA DE DOMINIO (PURA) =====
     
     public Result<Void> actualizarInformacion(String nuevoNombre, Email nuevoCorreo) {
         return validarNombre(nuevoNombre)
             .flatMap(n -> validarCorreo(nuevoCorreo))
             .map(c -> {
                 this.nombre = nuevoNombre.trim();
-                this.correo = nuevoCorreo;
+                this.correo = nuevoCorreo.getValor();
                 return null;
             });
     }
@@ -45,7 +73,7 @@ public class Cliente extends BaseEntity {
     public Result<Void> cambiarCorreo(Email nuevoCorreo) {
         return validarCorreo(nuevoCorreo)
             .map(c -> {
-                this.correo = c;
+                this.correo = c.getValor();
                 return null;
             });
     }
@@ -75,6 +103,8 @@ public class Cliente extends BaseEntity {
         return Result.success();
     }
     
+    // ===== MÉTODOS PRIVADOS PARA CONSTRUCTORES =====
+    
     private void setNombre(String nombre) {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new DomainException("El nombre del cliente no puede estar vacío");
@@ -86,12 +116,18 @@ public class Cliente extends BaseEntity {
         if (correo == null) {
             throw new DomainException("El correo no puede ser null");
         }
-        this.correo = correo;
+        this.correo = correo.getValor();
     }
     
-    // Getters
+    // ===== GETTERS (DOMINIO + JPA) =====
+    
     @Override
     public ClienteId getId() {
+        return ClienteId.from(id.toString());
+    }
+    
+    // Getter para JPA/Infraestructura
+    public UUID getIdValue() {
         return id;
     }
     
@@ -100,6 +136,19 @@ public class Cliente extends BaseEntity {
     }
     
     public Email getCorreo() {
+        return new Email(correo);
+    }
+    
+    // Getter para JPA/Infraestructura  
+    public String getCorreoValue() {
         return correo;
+    }
+    
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }
