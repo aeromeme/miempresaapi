@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Implementación del repositorio de Cliente usando Spring Data JPA.
@@ -32,8 +31,7 @@ public class ClienteRepositoryImpl implements ClienteRepository {
     
     @Override
     public Optional<Cliente> findById(ClienteId id) {
-        UUID uuid = id.getValue();
-        return clienteJpaRepository.findById(uuid);
+        return clienteJpaRepository.findById(id);
     }
     
     @Override
@@ -95,14 +93,12 @@ public class ClienteRepositoryImpl implements ClienteRepository {
     
     @Override
     public void deleteById(ClienteId id) {
-        UUID uuid = id.getValue();
-        clienteJpaRepository.deleteById(uuid);
+        clienteJpaRepository.deleteById(id);
     }
     
     @Override
     public boolean existsById(ClienteId id) {
-        UUID uuid = id.getValue();
-        return clienteJpaRepository.existsById(uuid);
+        return clienteJpaRepository.existsById(id);
     }
     
     @Override

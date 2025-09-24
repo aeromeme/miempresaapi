@@ -1,6 +1,7 @@
 package com.miempresa.ventas.infrastructure.persistence;
 
 import com.miempresa.ventas.domain.model.Cliente;
+import com.miempresa.ventas.domain.valueobject.ClienteId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * JPA Repository para la entidad Cliente.
@@ -16,7 +16,7 @@ import java.util.UUID;
  * para implementar automáticamente las operaciones de persistencia.
  */
 @Repository
-public interface ClienteJpaRepository extends JpaRepository<Cliente, UUID> {
+public interface ClienteJpaRepository extends JpaRepository<Cliente, ClienteId> {
     
     /**
      * Busca un cliente por su correo electrónico

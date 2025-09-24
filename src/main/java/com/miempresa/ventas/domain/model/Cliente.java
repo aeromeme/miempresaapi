@@ -13,9 +13,8 @@ import java.util.UUID;
 @Table(name = "clientes")
 public class Cliente extends BaseEntity {
     
-    @Id
-    @Column(name = "id", columnDefinition = "UUID")
-    private UUID id;
+    @EmbeddedId
+    private ClienteId id;
     
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
@@ -37,7 +36,7 @@ public class Cliente extends BaseEntity {
     // Constructor para crear nuevo cliente (dominio)
     public Cliente(String nombre, Email correo) {
         this(); // Llama al constructor de JPA
-        this.id = UUID.randomUUID();
+        this.id = ClienteId.generate();
         this.setNombre(nombre);
         this.setCorreo(correo);
     }
@@ -45,7 +44,7 @@ public class Cliente extends BaseEntity {
     // Constructor para reconstruir desde persistencia (dominio)
     public Cliente(ClienteId id, String nombre, Email correo) {
         this(); // Llama al constructor de JPA
-        this.id = id.getValue();
+        this.id = id;
         this.setNombre(nombre);
         this.setCorreo(correo);
     }
@@ -123,12 +122,12 @@ public class Cliente extends BaseEntity {
     
     @Override
     public ClienteId getId() {
-        return ClienteId.from(id.toString());
+        return id;
     }
     
     // Getter para JPA/Infraestructura
     public UUID getIdValue() {
-        return id;
+        return id.getValue();
     }
     
     public String getNombre() {

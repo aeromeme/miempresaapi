@@ -20,7 +20,7 @@ public class ClienteMapper {
         }
         
         return new ClienteDto(
-            cliente.getId().getValue().toString(),
+            cliente.getId().getValue().toString(), // El value object ClienteId se convierte a String
             cliente.getNombre(),
             cliente.getCorreo().getValor()
         );

@@ -3,7 +3,6 @@ package com.miempresa.ventas.domain.model;
 import com.miempresa.ventas.domain.valueobject.ProductoId;
 import com.miempresa.ventas.domain.valueobject.Precio;
 import com.miempresa.ventas.domain.valueobject.Result;
-import com.miempresa.ventas.domain.exception.DomainException;
 import jakarta.persistence.*;
 
 @Entity
@@ -26,20 +25,69 @@ public class Producto extends BaseEntity {
         // Constructor requerido por JPA
     }
     
-    // Constructor para crear nuevo producto
-    public Producto(String nombre, Precio precio, int stock) {
-        this.id = ProductoId.generate();
-        this.setNombre(nombre);
-        this.setPrecio(precio);
-        this.setStock(stock);
+    // Constructor privado para uso interno
+    private Producto(ProductoId id) {
+        this.id = id;
     }
     
-    // Constructor para reconstruir desde persistencia
-    public Producto(ProductoId id, String nombre, Precio precio, int stock) {
-        this.id = id;
-        this.setNombre(nombre);
-        this.setPrecio(precio);
-        this.setStock(stock);
+    // Método de fábrica para crear nuevo producto
+    public static Result<Producto> create(String nombre, Precio precio, int stock) {
+        try {
+            Producto producto = new Producto(ProductoId.generate());
+            
+            return Result.success()
+                .flatMap(r -> producto.setNombre(nombre))
+                .flatMap(r -> producto.setPrecio(precio))
+                .flatMap(r -> producto.setStock(stock))
+                .map(r -> producto);
+                
+        } catch (Exception e) {
+            return Result.failure("Error al crear producto: " + e.getMessage());
+        }
+    }
+    
+    // Método de fábrica para reconstruir desde persistencia
+    public static Result<Producto> reconstruct(ProductoId id, String nombre, Precio precio, int stock) {
+        try {
+            if (id == null) {
+                return Result.failure("El ID del producto no puede ser null");
+            }
+            
+            Producto producto = new Producto(id);
+            
+            return Result.success()
+                .flatMap(r -> producto.setNombre(nombre))
+                .flatMap(r -> producto.setPrecio(precio))
+                .flatMap(r -> producto.setStock(stock))
+                .map(r -> producto);
+                
+        } catch (Exception e) {
+            return Result.failure("Error al reconstruir producto: " + e.getMessage());
+        }
+    }
+    
+    private Result<Void> setNombre(String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            return Result.failure("El nombre del producto no puede estar vacío");
+        }
+        this.nombre = nombre.trim();
+        return Result.success();
+    }
+    
+    private Result<Void> setPrecio(Precio precio) {
+        if (precio == null) {
+            return Result.failure("El precio no puede ser null");
+        }
+        this.precio = precio;
+        return Result.success();
+    }
+    
+    private Result<Void> setStock(int stock) {
+        if (stock < 0) {
+            return Result.failure("El stock no puede ser negativo");
+        }
+        this.stock = stock;
+        return Result.success();
     }
     
     public Result<Void> actualizarPrecio(Precio nuevoPrecio) {
@@ -106,27 +154,6 @@ public class Producto extends BaseEntity {
             return Result.failure("El producto '" + nombre + "' no tiene stock disponible");
         }
         return Result.success();
-    }
-    
-    private void setNombre(String nombre) {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new DomainException("El nombre del producto no puede estar vacío");
-        }
-        this.nombre = nombre.trim();
-    }
-    
-    private void setPrecio(Precio precio) {
-        if (precio == null) {
-            throw new DomainException("El precio no puede ser null");
-        }
-        this.precio = precio;
-    }
-    
-    private void setStock(int stock) {
-        if (stock < 0) {
-            throw new DomainException("El stock no puede ser negativo");
-        }
-        this.stock = stock;
     }
     
     // Getters

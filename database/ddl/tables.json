@@ -1,0 +1,183 @@
+{
+  "tables": {
+    "clientes": {
+      "columns": {
+        "id": {
+          "type": "UUID",
+          "primaryKey": true,
+          "default": "uuid_generate_v4()"
+        },
+        "nombre": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "constraints": ["CHECK (LENGTH(TRIM(nombre)) >= 2)"]
+        },
+        "correo": {
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "unique": true,
+          "constraints": [
+            "CHECK (correo ~* '^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')"
+          ]
+        },
+        "created_at": {
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indices": [
+        {
+          "name": "idx_clientes_correo",
+          "columns": ["correo"]
+        },
+        {
+          "name": "idx_clientes_nombre",
+          "columns": ["nombre"]
+        }
+      ]
+    },
+    "productos": {
+      "columns": {
+        "id": {
+          "type": "UUID",
+          "primaryKey": true,
+          "default": "uuid_generate_v4()"
+        },
+        "nombre": {
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "constraints": ["CHECK (LENGTH(TRIM(nombre)) > 0)"]
+        },
+        "precio_valor": {
+          "type": "DECIMAL(12,2)",
+          "nullable": false,
+          "constraints": ["CHECK (precio_valor >= 0)"]
+        },
+        "stock": {
+          "type": "INTEGER",
+          "nullable": false,
+          "constraints": ["CHECK (stock >= 0)"]
+        },
+        "created_at": {
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indices": [
+        {
+          "name": "idx_productos_nombre",
+          "columns": ["nombre"]
+        },
+        {
+          "name": "idx_productos_stock",
+          "columns": ["stock"]
+        }
+      ]
+    },
+    "ventas": {
+      "columns": {
+        "id": {
+          "type": "UUID",
+          "primaryKey": true,
+          "default": "uuid_generate_v4()"
+        },
+        "fecha": {
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "cliente_id": {
+          "type": "UUID",
+          "nullable": false,
+          "references": {
+            "table": "clientes",
+            "column": "id",
+            "onDelete": "RESTRICT"
+          }
+        },
+        "created_at": {
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indices": [
+        {
+          "name": "idx_ventas_cliente_id",
+          "columns": ["cliente_id"]
+        },
+        {
+          "name": "idx_ventas_fecha",
+          "columns": ["fecha"]
+        }
+      ]
+    },
+    "lineas_venta": {
+      "columns": {
+        "id": {
+          "type": "UUID",
+          "primaryKey": true,
+          "default": "uuid_generate_v4()"
+        },
+        "venta_id": {
+          "type": "UUID",
+          "nullable": false,
+          "references": {
+            "table": "ventas",
+            "column": "id",
+            "onDelete": "CASCADE"
+          }
+        },
+        "producto_id": {
+          "type": "UUID",
+          "nullable": false,
+          "references": {
+            "table": "productos",
+            "column": "id",
+            "onDelete": "RESTRICT"
+          }
+        },
+        "cantidad": {
+          "type": "INTEGER",
+          "nullable": false,
+          "constraints": ["CHECK (cantidad > 0)"]
+        },
+        "precio_unitario_valor": {
+          "type": "DECIMAL(12,2)",
+          "nullable": false,
+          "constraints": ["CHECK (precio_unitario_valor >= 0)"]
+        },
+        "created_at": {
+          "type": "TIMESTAMP WITH TIME ZONE",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indices": [
+        {
+          "name": "idx_lineas_venta_venta_id",
+          "columns": ["venta_id"]
+        },
+        {
+          "name": "idx_lineas_venta_producto_id",
+          "columns": ["producto_id"]
+        },
+        {
+          "name": "idx_lineas_venta_unique",
+          "columns": ["venta_id", "producto_id"],
+          "unique": true
+        }
+      ]
+    }
+  }
+}
