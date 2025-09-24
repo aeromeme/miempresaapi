@@ -7,6 +7,7 @@ import com.miempresa.ventas.application.service.ProductoApplicationService;
 import com.miempresa.ventas.domain.valueobject.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,8 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * Controlador REST para gestión de productos.
@@ -40,7 +39,7 @@ public class ProductoController {
     @ApiResponses({
         @ApiResponse(responseCode = "200", 
                     description = "Lista de productos obtenida exitosamente",
-                    content = @Content(schema = @Schema(implementation = ProductoDto.class))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProductoDto.class)))),
         @ApiResponse(responseCode = "500", 
                     description = "Error interno al obtener los productos",
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
@@ -169,7 +168,7 @@ public class ProductoController {
     @ApiResponses({
         @ApiResponse(responseCode = "200", 
                     description = "Búsqueda realizada exitosamente",
-                    content = @Content(schema = @Schema(implementation = ProductoDto.class))),
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = ProductoDto.class)))),
         @ApiResponse(responseCode = "500", 
                     description = "Error interno al realizar la búsqueda",
                     content = @Content(schema = @Schema(implementation = ProblemDetail.class)))

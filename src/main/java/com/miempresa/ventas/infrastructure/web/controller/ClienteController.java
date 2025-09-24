@@ -5,6 +5,8 @@ import com.miempresa.ventas.application.dto.ClienteDto;
 import com.miempresa.ventas.application.dto.PagedResponse;
 import com.miempresa.ventas.application.dto.ClienteFilter;
 import com.miempresa.ventas.domain.valueobject.Result;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,7 +57,10 @@ public class ClienteController {
         @ApiResponse(
             responseCode = "400", 
             description = "Parámetros de paginación inválidos",
-            content = @Content(mediaType = "application/json")
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ProblemDetail.class)
+            )
         )
     })
     public ResponseEntity<?> obtenerClientes(
@@ -71,7 +76,10 @@ public class ClienteController {
         if (result.isSuccess()) {
             return ResponseEntity.ok(result.getValue());
         } else {
-            return ResponseEntity.badRequest().body(Map.of("error", result.getFirstError()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ProblemDetail.forStatusAndDetail(
+                    HttpStatus.BAD_REQUEST,
+                    "Error en la paginación: " + result.getFirstError()));
         }
     }
     
@@ -96,7 +104,10 @@ public class ClienteController {
         @ApiResponse(
             responseCode = "400", 
             description = "Parámetros inválidos o filtro de nombre requerido",
-            content = @Content(mediaType = "application/json")
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ProblemDetail.class)
+            )
         )
     })
     public ResponseEntity<?> obtenerClientesPorNombre(
@@ -110,7 +121,10 @@ public class ClienteController {
             @RequestParam(defaultValue = "10") int size) {
         
         if (nombre == null || nombre.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "El parámetro 'nombre' es requerido"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ProblemDetail.forStatusAndDetail(
+                    HttpStatus.BAD_REQUEST,
+                    "El parámetro 'nombre' es requerido"));
         }
         
         Result<PagedResponse<ClienteDto>> result = clienteApplicationService
@@ -144,7 +158,10 @@ public class ClienteController {
         @ApiResponse(
             responseCode = "400", 
             description = "Parámetros inválidos o filtro de correo requerido",
-            content = @Content(mediaType = "application/json")
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ProblemDetail.class)
+            )
         )
     })
     public ResponseEntity<?> obtenerClientesPorCorreo(
@@ -158,7 +175,10 @@ public class ClienteController {
             @RequestParam(defaultValue = "10") int size) {
         
         if (correo == null || correo.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "El parámetro 'correo' es requerido"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ProblemDetail.forStatusAndDetail(
+                    HttpStatus.BAD_REQUEST,
+                    "El parámetro 'correo' es requerido"));
         }
         
         Result<PagedResponse<ClienteDto>> result = clienteApplicationService
@@ -167,7 +187,10 @@ public class ClienteController {
         if (result.isSuccess()) {
             return ResponseEntity.ok(result.getValue());
         } else {
-            return ResponseEntity.badRequest().body(Map.of("error", result.getFirstError()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ProblemDetail.forStatusAndDetail(
+                    HttpStatus.BAD_REQUEST,
+                    "Error al buscar clientes por correo: " + result.getFirstError()));
         }
     }
     
@@ -192,7 +215,10 @@ public class ClienteController {
         @ApiResponse(
             responseCode = "400", 
             description = "Parámetros inválidos o al menos un filtro es requerido",
-            content = @Content(mediaType = "application/json")
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ProblemDetail.class)
+            )
         )
     })
     public ResponseEntity<?> obtenerClientesFiltrados(
@@ -211,8 +237,10 @@ public class ClienteController {
         // Validar que al menos un filtro esté presente
         if ((nombre == null || nombre.trim().isEmpty()) && 
             (correo == null || correo.trim().isEmpty())) {
-            return ResponseEntity.badRequest().body(
-                Map.of("error", "Al menos uno de los parámetros 'nombre' o 'correo' es requerido"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ProblemDetail.forStatusAndDetail(
+                    HttpStatus.BAD_REQUEST,
+                    "Al menos uno de los parámetros 'nombre' o 'correo' es requerido"));
         }
         
         Result<PagedResponse<ClienteDto>> result;
@@ -232,7 +260,10 @@ public class ClienteController {
         if (result.isSuccess()) {
             return ResponseEntity.ok(result.getValue());
         } else {
-            return ResponseEntity.badRequest().body(Map.of("error", result.getFirstError()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ProblemDetail.forStatusAndDetail(
+                    HttpStatus.BAD_REQUEST,
+                    "Error al buscar clientes con los filtros especificados: " + result.getFirstError()));
         }
     }
 }
