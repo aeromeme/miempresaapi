@@ -43,8 +43,8 @@ public interface ClienteJpaRepository extends JpaRepository<Cliente, ClienteId> 
     /**
      * Busca clientes cuyo nombre Y correo contengan los textos especificados (case insensitive)
      */
-    @Query("SELECT c FROM Cliente c WHERE LOWER(c.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')) " +
-           "AND LOWER(c.correo) LIKE LOWER(CONCAT('%', :correo, '%'))")
+    @Query(value = "SELECT c FROM Cliente c WHERE LOWER(c.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')) " +
+                   "AND LOWER(c.correo) LIKE LOWER(CONCAT('%', :correo, '%'))")
     List<Cliente> findByNombreContainingAndCorreoContainingIgnoreCase(
         @Param("nombre") String nombre, 
         @Param("correo") String correo
@@ -53,7 +53,7 @@ public interface ClienteJpaRepository extends JpaRepository<Cliente, ClienteId> 
     /**
      * Busca clientes con paginación manual usando OFFSET y LIMIT
      */
-    @Query(value = "SELECT * FROM clientes ORDER BY nombre ASC LIMIT :limit OFFSET :offset", 
+    @Query(value = "SELECT * FROM clientes ORDER BY nombre LIMIT :limit OFFSET :offset",
            nativeQuery = true)
     List<Cliente> findAllWithOffsetAndLimit(@Param("offset") int offset, @Param("limit") int limit);
     
@@ -61,7 +61,7 @@ public interface ClienteJpaRepository extends JpaRepository<Cliente, ClienteId> 
      * Busca clientes por nombre con paginación manual
      */
     @Query(value = "SELECT * FROM clientes WHERE LOWER(nombre) LIKE LOWER(CONCAT('%', :nombre, '%')) " +
-                   "ORDER BY nombre ASC LIMIT :limit OFFSET :offset", 
+                   "ORDER BY nombre LIMIT :limit OFFSET :offset",
            nativeQuery = true)
     List<Cliente> findByNombreContainingWithOffsetAndLimit(
         @Param("nombre") String nombre, 
@@ -73,7 +73,7 @@ public interface ClienteJpaRepository extends JpaRepository<Cliente, ClienteId> 
      * Busca clientes por correo con paginación manual
      */
     @Query(value = "SELECT * FROM clientes WHERE LOWER(correo) LIKE LOWER(CONCAT('%', :correo, '%')) " +
-                   "ORDER BY nombre ASC LIMIT :limit OFFSET :offset", 
+                   "ORDER BY nombre LIMIT :limit OFFSET :offset",
            nativeQuery = true)
     List<Cliente> findByCorreoContainingWithOffsetAndLimit(
         @Param("correo") String correo, 
@@ -86,7 +86,7 @@ public interface ClienteJpaRepository extends JpaRepository<Cliente, ClienteId> 
      */
     @Query(value = "SELECT * FROM clientes WHERE LOWER(nombre) LIKE LOWER(CONCAT('%', :nombre, '%')) " +
                    "AND LOWER(correo) LIKE LOWER(CONCAT('%', :correo, '%')) " +
-                   "ORDER BY nombre ASC LIMIT :limit OFFSET :offset", 
+                   "ORDER BY nombre LIMIT :limit OFFSET :offset",
            nativeQuery = true)
     List<Cliente> findByNombreContainingAndCorreoContainingWithOffsetAndLimit(
         @Param("nombre") String nombre, 

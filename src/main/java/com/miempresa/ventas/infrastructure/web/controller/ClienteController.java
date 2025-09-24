@@ -222,11 +222,8 @@ public class ClienteController {
         )
     })
     public ResponseEntity<?> obtenerClientesFiltrados(
-            @Parameter(description = "Texto a buscar en el nombre del cliente", example = "Juan")
-            @RequestParam(required = false) String nombre,
-            
-            @Parameter(description = "Texto a buscar en el correo electrónico", example = "gmail.com")
-            @RequestParam(required = false) String correo,
+            @Parameter(description = "Texto a buscar en el nombre o correo del cliente", example = "Juan o juan@gmail.com")
+            @RequestParam(required = false) String query,
             
             @Parameter(description = "Número de página (inicia en 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
@@ -234,27 +231,15 @@ public class ClienteController {
             @Parameter(description = "Cantidad de elementos por página", example = "10")
             @RequestParam(defaultValue = "10") int size) {
         
-        // Validar que al menos un filtro esté presente
-        if ((nombre == null || nombre.trim().isEmpty()) && 
-            (correo == null || correo.trim().isEmpty())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ProblemDetail.forStatusAndDetail(
-                    HttpStatus.BAD_REQUEST,
-                    "Al menos uno de los parámetros 'nombre' o 'correo' es requerido"));
-        }
         
         Result<PagedResponse<ClienteDto>> result;
-        
-        if (nombre != null && !nombre.trim().isEmpty() && 
-            correo != null && !correo.trim().isEmpty()) {
+
+        if (query != null && !query.trim().isEmpty()) {
             // Ambos filtros
-            result = clienteApplicationService.obtenerClientesPorNombreYCorreo(page, size, nombre, correo);
-        } else if (nombre != null && !nombre.trim().isEmpty()) {
-            // Solo nombre
-            result = clienteApplicationService.obtenerClientesPorNombre(page, size, nombre);
+            result = clienteApplicationService.obtenerClientesPorNombreYCorreo(page, size, query);
         } else {
-            // Solo correo
-            result = clienteApplicationService.obtenerClientesPorCorreo(page, size, correo);
+            // Asignar un resultado de error si no hay filtro
+            result = Result.failure("El parámetro 'query' es requerido");
         }
         
         if (result.isSuccess()) {

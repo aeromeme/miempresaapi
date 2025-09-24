@@ -60,8 +60,8 @@ public class ClienteApplicationService {
      * Obtiene una lista paginada de clientes con filtro por nombre y correo
      */
     public Result<PagedResponse<ClienteDto>> obtenerClientesPorNombreYCorreo(
-            int page, int size, String nombre, String correo) {
-        ClienteFilter filtros = ClienteFilter.porNombreYCorreo(nombre, correo);
+            int page, int size, String query) {
+        ClienteFilter filtros = ClienteFilter.porNombreYCorreo(query, query);
         return obtenerClientesPaginados(page, size, filtros);
     }
     

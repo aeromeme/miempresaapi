@@ -1,9 +1,18 @@
 package com.miempresa.ventas.domain.valueobject;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import java.util.UUID;
 
+@Embeddable
 public class ClienteId extends ValueObject {
-    private final UUID value;
+    @Column(name = "id", columnDefinition = "uuid")
+    private UUID value;
+    
+    // Constructor para JPA
+    protected ClienteId() {
+        // Requerido por JPA
+    }
     
     public ClienteId(UUID value) {
         if (value == null) {
