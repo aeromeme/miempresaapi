@@ -44,7 +44,7 @@ public interface ClienteJpaRepository extends JpaRepository<Cliente, ClienteId> 
      * Busca clientes cuyo nombre Y correo contengan los textos especificados (case insensitive)
      */
     @Query(value = "SELECT c FROM Cliente c WHERE LOWER(c.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')) " +
-                   "AND LOWER(c.correo) LIKE LOWER(CONCAT('%', :correo, '%'))")
+                   "OR LOWER(c.correo) LIKE LOWER(CONCAT('%', :correo, '%'))")
     List<Cliente> findByNombreContainingAndCorreoContainingIgnoreCase(
         @Param("nombre") String nombre, 
         @Param("correo") String correo
@@ -85,7 +85,7 @@ public interface ClienteJpaRepository extends JpaRepository<Cliente, ClienteId> 
      * Busca clientes por nombre Y correo con paginación manual
      */
     @Query(value = "SELECT * FROM clientes WHERE LOWER(nombre) LIKE LOWER(CONCAT('%', :nombre, '%')) " +
-                   "AND LOWER(correo) LIKE LOWER(CONCAT('%', :correo, '%')) " +
+                   "OR LOWER(correo) LIKE LOWER(CONCAT('%', :correo, '%')) " +
                    "ORDER BY nombre LIMIT :limit OFFSET :offset",
            nativeQuery = true)
     List<Cliente> findByNombreContainingAndCorreoContainingWithOffsetAndLimit(
@@ -111,7 +111,7 @@ public interface ClienteJpaRepository extends JpaRepository<Cliente, ClienteId> 
      * Cuenta clientes cuyo nombre Y correo contengan los textos especificados
      */
     @Query("SELECT COUNT(c) FROM Cliente c WHERE LOWER(c.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')) " +
-           "AND LOWER(c.correo) LIKE LOWER(CONCAT('%', :correo, '%'))")
+           "OR LOWER(c.correo) LIKE LOWER(CONCAT('%', :correo, '%'))")
     long countByNombreContainingAndCorreoContainingIgnoreCase(
         @Param("nombre") String nombre, 
         @Param("correo") String correo
