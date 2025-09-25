@@ -1,10 +1,10 @@
 package com.miempresa.ventas.infrastructure.exception;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
@@ -19,50 +19,63 @@ import io.swagger.v3.oas.annotations.Hidden;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, Object> response = new HashMap<>();
-        Map<String, String> errors = new HashMap<>();
+    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST,
+            "Error de validación en los datos de entrada"
+        );
         
+        Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("message", "Error de validación");
-        response.put("errors", errors);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        
+        problemDetail.setType(URI.create("https://api.miempresa.com/errors/validation"));
+        problemDetail.setTitle("Error de Validación");
+        problemDetail.setProperty("errors", errors);
+        
+        return problemDetail;
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, Object>> handleBadCredentialsException(BadCredentialsException ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", HttpStatus.UNAUTHORIZED.value());
-        response.put("message", "Credenciales inválidas");
-        response.put("error", "Usuario o contraseña incorrectos");
+    public ProblemDetail handleBadCredentialsException(BadCredentialsException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.UNAUTHORIZED,
+            "Credenciales inválidas"
+        );
         
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        problemDetail.setType(URI.create("https://api.miempresa.com/errors/unauthorized"));
+        problemDetail.setTitle("Error de Autenticación");
+        problemDetail.setProperty("error", "Usuario o contraseña incorrectos");
+        
+        return problemDetail;
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Map<String, Object>> handleAuthenticationException(AuthenticationException ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", HttpStatus.UNAUTHORIZED.value());
-        response.put("message", "Error de autenticación");
-        response.put("error", ex.getMessage());
+    public ProblemDetail handleAuthenticationException(AuthenticationException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.UNAUTHORIZED,
+            ex.getMessage()
+        );
         
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        problemDetail.setType(URI.create("https://api.miempresa.com/errors/unauthorized"));
+        problemDetail.setTitle("Error de Autenticación");
+        
+        return problemDetail;
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        response.put("message", "Error interno del servidor");
-        response.put("error", ex.getMessage());
+    public ProblemDetail handleGeneralException(Exception ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            ex.getMessage()
+        );
         
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        problemDetail.setType(URI.create("https://api.miempresa.com/errors/internal"));
+        problemDetail.setTitle("Error Interno del Servidor");
+        
+        return problemDetail;
     }
 }

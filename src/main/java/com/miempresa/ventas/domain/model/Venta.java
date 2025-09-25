@@ -4,6 +4,7 @@ import com.miempresa.ventas.domain.valueobject.VentaId;
 import com.miempresa.ventas.domain.valueobject.ClienteId;
 import com.miempresa.ventas.domain.valueobject.Precio;
 import com.miempresa.ventas.domain.valueobject.Result;
+import com.miempresa.ventas.domain.valueobject.EstadoVenta;
 import com.miempresa.ventas.domain.exception.DomainException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public class Venta extends BaseEntity {
     private LocalDateTime fecha;
     private ClienteId clienteId;
     private List<LineaVenta> lineasVenta;
+    private EstadoVenta estado;
     
     // Constructor para crear nueva venta
     public Venta(ClienteId clienteId) {
@@ -23,6 +25,7 @@ public class Venta extends BaseEntity {
         this.fecha = LocalDateTime.now();
         this.clienteId = clienteId;
         this.lineasVenta = new ArrayList<>();
+        this.estado = EstadoVenta.ACTIVA;
         
         if (clienteId == null) {
             throw new DomainException("El cliente no puede ser null");
@@ -30,11 +33,12 @@ public class Venta extends BaseEntity {
     }
     
     // Constructor para reconstruir desde persistencia
-    public Venta(VentaId id, LocalDateTime fecha, ClienteId clienteId, List<LineaVenta> lineasVenta) {
+    public Venta(VentaId id, LocalDateTime fecha, ClienteId clienteId, List<LineaVenta> lineasVenta, EstadoVenta estado) {
         this.id = id;
         this.fecha = fecha;
         this.clienteId = clienteId;
         this.lineasVenta = new ArrayList<>(lineasVenta != null ? lineasVenta : new ArrayList<>());
+        this.estado = estado != null ? estado : EstadoVenta.ACTIVA;
         
         if (clienteId == null) {
             throw new DomainException("El cliente no puede ser null");
@@ -42,6 +46,9 @@ public class Venta extends BaseEntity {
     }
     
     public Result<Void> agregarLinea(Producto producto, int cantidad) {
+        if (estado == EstadoVenta.VENDIDA) {
+            return Result.failure("No se pueden agregar líneas a una venta ya procesada");
+        }
         return validarProducto(producto)
             .flatMap(p -> validarCantidad(cantidad))
             .flatMap(c -> producto.validarParaVenta())
@@ -102,6 +109,9 @@ public class Venta extends BaseEntity {
     }
     
     public Result<Void> removerLinea(com.miempresa.ventas.domain.valueobject.ProductoId productoId) {
+        if (estado == EstadoVenta.VENDIDA) {
+            return Result.failure("No se pueden remover líneas de una venta ya procesada");
+        }
         LineaVenta linea = buscarLineaExistente(productoId);
         if (linea == null) {
             return Result.failure("No existe una línea de venta para el producto especificado");
@@ -163,5 +173,20 @@ public class Venta extends BaseEntity {
     
     public List<LineaVenta> getLineasVenta() {
         return Collections.unmodifiableList(lineasVenta);
+    }
+
+    public EstadoVenta getEstado() {
+        return estado;
+    }
+
+    public Result<Void> marcarComoVendida() {
+        if (estado == EstadoVenta.VENDIDA) {
+            return Result.failure("La venta ya está marcada como vendida");
+        }
+        return validarParaProcesamiento()
+            .flatMap(v -> {
+                estado = EstadoVenta.VENDIDA;
+                return Result.success();
+            });
     }
 }

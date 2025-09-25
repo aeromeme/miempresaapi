@@ -46,6 +46,7 @@ CREATE TABLE ventas (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     fecha TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     cliente_id UUID NOT NULL REFERENCES clientes(id) ON DELETE RESTRICT,
+    estado CHAR(1) NOT NULL DEFAULT 'A' CHECK (estado IN ('A', 'C', 'X','V')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -53,6 +54,11 @@ CREATE TABLE ventas (
 -- Índices para ventas
 CREATE INDEX idx_ventas_cliente_id ON ventas(cliente_id);
 CREATE INDEX idx_ventas_fecha ON ventas(fecha);
+CREATE INDEX idx_ventas_estado ON ventas(estado);
+CREATE INDEX idx_ventas_estado ON ventas(estado);
+
+-- Documentar el significado de los estados
+COMMENT ON COLUMN ventas.estado IS 'Estado de la venta: A=Activa, C=Cancelada, X=Anulada, V=Vendida';
 
 -- =====================================================
 -- Tabla: lineas_venta
