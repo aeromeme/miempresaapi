@@ -1,8 +1,10 @@
 package com.miempresa.ventas.domain.valueobject;
 
 public enum EstadoVenta {
-    ACTIVA('A'),
-    VENDIDA('V');
+    APROBADA('A'),
+    CANCELADA('C'),
+    ANULADA('X'),
+    EDICION('E');
 
     private final char codigo;
 

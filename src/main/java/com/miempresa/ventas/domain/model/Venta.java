@@ -25,7 +25,7 @@ public class Venta extends BaseEntity {
         this.fecha = LocalDateTime.now();
         this.clienteId = clienteId;
         this.lineasVenta = new ArrayList<>();
-        this.estado = EstadoVenta.ACTIVA;
+        this.estado = EstadoVenta.EDICION;
         
         if (clienteId == null) {
             throw new DomainException("El cliente no puede ser null");
@@ -38,7 +38,7 @@ public class Venta extends BaseEntity {
         this.fecha = fecha;
         this.clienteId = clienteId;
         this.lineasVenta = new ArrayList<>(lineasVenta != null ? lineasVenta : new ArrayList<>());
-        this.estado = estado != null ? estado : EstadoVenta.ACTIVA;
+        this.estado = estado != null ? estado : EstadoVenta.EDICION;
         
         if (clienteId == null) {
             throw new DomainException("El cliente no puede ser null");
@@ -46,7 +46,7 @@ public class Venta extends BaseEntity {
     }
     
     public Result<Void> agregarLinea(Producto producto, int cantidad) {
-        if (estado == EstadoVenta.VENDIDA) {
+        if (estado == EstadoVenta.APROBADA || estado == EstadoVenta.CANCELADA || estado == EstadoVenta.ANULADA) {
             return Result.failure("No se pueden agregar líneas a una venta ya procesada");
         }
         return validarProducto(producto)
@@ -109,7 +109,7 @@ public class Venta extends BaseEntity {
     }
     
     public Result<Void> removerLinea(com.miempresa.ventas.domain.valueobject.ProductoId productoId) {
-        if (estado == EstadoVenta.VENDIDA) {
+        if (estado == EstadoVenta.APROBADA || estado == EstadoVenta.CANCELADA || estado == EstadoVenta.ANULADA) {
             return Result.failure("No se pueden remover líneas de una venta ya procesada");
         }
         LineaVenta linea = buscarLineaExistente(productoId);
@@ -179,13 +179,13 @@ public class Venta extends BaseEntity {
         return estado;
     }
 
-    public Result<Void> marcarComoVendida() {
-        if (estado == EstadoVenta.VENDIDA) {
-            return Result.failure("La venta ya está marcada como vendida");
+    public Result<Void> marcarComoProcesada() {
+        if (estado == EstadoVenta.APROBADA || estado == EstadoVenta.CANCELADA || estado == EstadoVenta.ANULADA) {
+            return Result.failure("La venta ya está marcada como procesada");
         }
         return validarParaProcesamiento()
             .flatMap(v -> {
-                estado = EstadoVenta.VENDIDA;
+                estado = EstadoVenta.APROBADA;
                 return Result.success();
             });
     }
