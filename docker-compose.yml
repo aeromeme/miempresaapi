@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "${PORT:-8080}:8080"
+    container_name: ventas-backend
+    environment:
+      - SERVER_PORT=8080
+    networks:
+      - ventas-network
+
+  # frontend:
+  #   image: node:21-alpine
+  #   container_name: ventas-frontend
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./frontend:/app
+  #   working_dir: /app
+  #   command: sh -c "npm install && npm run build && npm install -g serve && serve -s build"
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=docker
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - ventas-network
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=miDB
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres123
+    volumes:
+      - ./database/ddl/00-init.sql:/docker-entrypoint-initdb.d/00-init.sql
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - ventas-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d miDB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8081:80"
+    depends_on:
+      - postgres
+    networks:
+      - ventas-network
+
+networks:
+  ventas-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
