@@ -2,16 +2,12 @@ package com.miempresa.ventas.application.service;
 
 import com.miempresa.ventas.domain.repository.VentaRepository;
 import com.miempresa.ventas.domain.model.Venta;
-import com.miempresa.ventas.domain.model.LineaVenta;
-import com.miempresa.ventas.domain.valueobject.ProductoId;
+import com.miempresa.ventas.domain.valueobject.ClienteId;
 import com.miempresa.ventas.domain.valueobject.Result;
 import com.miempresa.ventas.domain.valueobject.VentaId;
 import com.miempresa.ventas.application.dto.VentaDTO;
 import com.miempresa.ventas.application.dto.CreateVentaDTO;
 import com.miempresa.ventas.application.dto.UpdateVentaDTO;
-import com.miempresa.ventas.application.dto.LineaVentaDTO;
-import com.miempresa.ventas.application.dto.CreateLineaVentaDTO;
-import com.miempresa.ventas.application.dto.UpdateLineaVentaDTO;
 import com.miempresa.ventas.application.mapper.VentaMapper;
 import org.springframework.stereotype.Service;
 
@@ -20,9 +16,10 @@ import java.util.Optional;
 
 @Service
 public class VentaApplicationService {
+
+
     private final VentaRepository ventaRepository;
     private final VentaMapper ventaMapper;
-    
 
     public VentaApplicationService(VentaRepository ventaRepository, VentaMapper ventaMapper) {
         this.ventaRepository = ventaRepository;
@@ -68,8 +65,8 @@ public class VentaApplicationService {
             VentaId ventaId = VentaId.from(id);
             Optional<Venta> ventaOpt = ventaRepository.findById(ventaId);
             return ventaOpt
-                .map(venta -> Result.success(ventaMapper.toDto(venta)))
-                .orElse(Result.failure("Venta no encontrada con ID: " + id));
+                    .map(venta -> Result.success(ventaMapper.toDto(venta)))
+                    .orElse(Result.failure("Venta no encontrada con ID: " + id));
         } catch (Exception e) {
             return Result.failure("Error al obtener venta: " + e.getMessage());
         }
@@ -82,6 +79,17 @@ public class VentaApplicationService {
             return Result.success(ventaMapper.toDto(ventas));
         } catch (Exception e) {
             return Result.failure("Error al obtener ventas: " + e.getMessage());
+        }
+    }
+
+        // Obtener ventas por clienteId
+    public Result<List<VentaDTO>> findByClienteId(String clienteId) {
+        try {
+            var ventas = ventaRepository
+                    .findByClienteId(ClienteId.from(clienteId));
+            return Result.success(ventaMapper.toDto(ventas));
+        } catch (Exception e) {
+            return Result.failure("Error al obtener ventas por cliente: " + e.getMessage());
         }
     }
 

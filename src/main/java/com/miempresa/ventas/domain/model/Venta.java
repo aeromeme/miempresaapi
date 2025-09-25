@@ -115,6 +115,7 @@ public class Venta extends BaseEntity {
             return LineaVenta.crear(producto.getId(), cantidad, producto.getPrecio())
                     .flatMap(nuevaLinea -> {
                         lineasVenta.add(nuevaLinea);
+                        nuevaLinea.setVenta(this);
                         return producto.reducirStock(cantidad);
                     });
         }

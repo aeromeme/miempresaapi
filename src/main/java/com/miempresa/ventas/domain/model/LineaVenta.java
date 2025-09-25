@@ -111,6 +111,8 @@ public class LineaVenta {
                 });
     }
 
+    public Venta getVenta() { return venta; }
+    public void setVenta(Venta venta) { this.venta = venta; }
     // Getters
     public ProductoId getProductoId() {
         return productoId;
