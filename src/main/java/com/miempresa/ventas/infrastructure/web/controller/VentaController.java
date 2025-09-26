@@ -5,12 +5,17 @@ import com.miempresa.ventas.application.dto.UpdateVentaDTO;
 import com.miempresa.ventas.application.dto.CreateVentaDTO;
 import com.miempresa.ventas.application.service.VentaApplicationService;
 import com.miempresa.ventas.domain.valueobject.Result;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/ventas")
+@RequestMapping("/api/ventas")
+@Tag(name = "Ventas", description = "API para gestión de ventas")
 public class VentaController {
+   
 
     private final VentaApplicationService ventaApplicationService;
 
@@ -58,6 +63,14 @@ public class VentaController {
     @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<java.util.List<VentaDTO>> getByClienteId(@PathVariable String clienteId) {
         var result = ventaApplicationService.findByClienteId(clienteId);
+        if (result.isFailure() || result.getValue() == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        return ResponseEntity.ok(result.getValue());
+    }
+     @GetMapping("/estado/{estado}")
+    public ResponseEntity<java.util.List<VentaDTO>> getByEstado(@PathVariable String estado) {
+        var result = ventaApplicationService.findByEstado(estado);
         if (result.isFailure() || result.getValue() == null) {
             return ResponseEntity.badRequest().body(null);
         }

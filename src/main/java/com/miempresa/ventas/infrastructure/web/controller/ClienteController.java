@@ -26,7 +26,7 @@ import java.util.Map;
  * Swagger UI estará disponible en: http://localhost:8080/swagger-ui.html
  */
 @RestController
-@RequestMapping("/api/v1/clientes")
+@RequestMapping("/api/clientes")
 @Tag(name = "Clientes", description = "API para gestión de clientes")
 public class ClienteController {
     

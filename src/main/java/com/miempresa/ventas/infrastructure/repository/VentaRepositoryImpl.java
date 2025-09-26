@@ -3,6 +3,7 @@ package com.miempresa.ventas.infrastructure.repository;
 import com.miempresa.ventas.domain.model.Venta;
 import com.miempresa.ventas.domain.repository.VentaRepository;
 import com.miempresa.ventas.domain.valueobject.ClienteId;
+import com.miempresa.ventas.domain.valueobject.EstadoVenta;
 import com.miempresa.ventas.domain.valueobject.VentaId;
 import com.miempresa.ventas.infrastructure.persistence.VentaRepositoryJpa;
 
@@ -15,6 +16,10 @@ import java.util.Optional;
 
 @Repository
 public class VentaRepositoryImpl implements VentaRepository {
+    @Override
+    public List<Venta> findByEstado(EstadoVenta estado) {
+        return ventaRepositoryJpa.findByEstado(estado);
+    }
 
     private final VentaRepositoryJpa ventaRepositoryJpa;
 

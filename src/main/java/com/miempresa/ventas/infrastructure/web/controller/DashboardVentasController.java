@@ -4,6 +4,9 @@ import com.miempresa.ventas.application.dto.TopProductoDTO;
 import com.miempresa.ventas.application.dto.ClienteIngresosDTO;
 import com.miempresa.ventas.application.dto.IngresosMensualesDTO;
 import com.miempresa.ventas.application.usecase.ObtenerTopProductosVendidosUseCase;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.miempresa.ventas.application.usecase.ObtenerClientesTopIngresosUseCase;
 import com.miempresa.ventas.application.usecase.ObtenerIngresosMensualesUseCase;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/dashboard/ventas")
+@RequestMapping("/api/dashboard/ventas")
+@Tag(name = "VentasDashboard", description = "API para consultas del dashboard de ventas")
 public class DashboardVentasController {
 
     private final ObtenerTopProductosVendidosUseCase obtenerTopProductosVendidosUseCase;

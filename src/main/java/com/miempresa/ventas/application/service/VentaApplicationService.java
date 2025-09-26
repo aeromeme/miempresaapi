@@ -3,6 +3,7 @@ package com.miempresa.ventas.application.service;
 import com.miempresa.ventas.domain.repository.VentaRepository;
 import com.miempresa.ventas.domain.model.Venta;
 import com.miempresa.ventas.domain.valueobject.ClienteId;
+import com.miempresa.ventas.domain.valueobject.EstadoVenta;
 import com.miempresa.ventas.domain.valueobject.Result;
 import com.miempresa.ventas.domain.valueobject.VentaId;
 import com.miempresa.ventas.application.dto.VentaDTO;
@@ -16,7 +17,16 @@ import java.util.Optional;
 
 @Service
 public class VentaApplicationService {
-
+    // Obtener ventas por estado
+    public Result<List<VentaDTO>> findByEstado(String estado) {
+        try {
+            var estadoVenta = EstadoVenta.fromCodigo(estado.charAt(0));
+            var ventas = ventaRepository.findByEstado(estadoVenta);
+            return Result.success(ventaMapper.toDto(ventas));
+        } catch (Exception e) {
+            return Result.failure("Error al obtener ventas por estado: " + e.getMessage());
+        }
+    }
 
     private final VentaRepository ventaRepository;
     private final VentaMapper ventaMapper;
@@ -82,7 +92,7 @@ public class VentaApplicationService {
         }
     }
 
-        // Obtener ventas por clienteId
+    // Obtener ventas por clienteId
     public Result<List<VentaDTO>> findByClienteId(String clienteId) {
         try {
             var ventas = ventaRepository
