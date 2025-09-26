@@ -6,7 +6,7 @@ import java.util.List;
 
 public record VentaDTO(
     String id,
-    String clienteId,
+    ClienteDto cliente,
     LocalDateTime fechaVenta,
     BigDecimal total,
     String estado,

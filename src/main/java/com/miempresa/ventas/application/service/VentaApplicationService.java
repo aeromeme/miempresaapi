@@ -1,19 +1,31 @@
 package com.miempresa.ventas.application.service;
 
+import com.miempresa.ventas.domain.repository.ClienteRepository;
+import com.miempresa.ventas.domain.repository.ProductoRepository;
 import com.miempresa.ventas.domain.repository.VentaRepository;
+import com.miempresa.ventas.domain.service.VentaService;
+import com.miempresa.ventas.domain.service.VentaService.ProductoVentaRequest;
+import com.miempresa.ventas.domain.model.Cliente;
+import com.miempresa.ventas.domain.model.LineaVenta;
+import com.miempresa.ventas.domain.model.Producto;
 import com.miempresa.ventas.domain.model.Venta;
 import com.miempresa.ventas.domain.valueobject.ClienteId;
 import com.miempresa.ventas.domain.valueobject.EstadoVenta;
+import com.miempresa.ventas.domain.valueobject.ProductoId;
 import com.miempresa.ventas.domain.valueobject.Result;
 import com.miempresa.ventas.domain.valueobject.VentaId;
 import com.miempresa.ventas.application.dto.VentaDTO;
+import com.miempresa.ventas.application.dto.CreateLineaVentaDTO;
 import com.miempresa.ventas.application.dto.CreateVentaDTO;
+import com.miempresa.ventas.application.dto.UpdateLineaVentaDTO;
 import com.miempresa.ventas.application.dto.UpdateVentaDTO;
 import com.miempresa.ventas.application.mapper.VentaMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class VentaApplicationService {
@@ -30,19 +42,41 @@ public class VentaApplicationService {
 
     private final VentaRepository ventaRepository;
     private final VentaMapper ventaMapper;
+    private final ClienteRepository clienteRepository;
+    private final ProductoRepository productoRepository;
+    private final VentaService ventaService;
 
-    public VentaApplicationService(VentaRepository ventaRepository, VentaMapper ventaMapper) {
+    public VentaApplicationService(VentaRepository ventaRepository, VentaMapper ventaMapper, ClienteRepository clienteRepository, ProductoRepository productoRepository, VentaService ventaService) {
         this.ventaRepository = ventaRepository;
         this.ventaMapper = ventaMapper;
+        this.clienteRepository = clienteRepository;
+        this.productoRepository = productoRepository;
+        this.ventaService = ventaService;
     }
 
     // Crear una nueva venta
     public Result<VentaDTO> create(CreateVentaDTO createDto) {
         try {
-            var resultado = ventaMapper.toNewDomain(createDto);
-            if (resultado.isFailure()) {
-                return Result.failure(resultado.getFirstError());
+            //var resultado = ventaMapper.toNewDomain(createDto);
+            ClienteId clienteId = ClienteId.from(createDto.getClienteId());
+            if (!clienteRepository.existsById(clienteId))
+                return Result.failure("Cliente no encontrado");
+            Cliente cliente = clienteRepository.findById(clienteId).get();
+            List<ProductoVentaRequest> lineaVentas = new ArrayList<>();
+            for(CreateLineaVentaDTO linea : createDto.getLineasVenta()) {
+                ProductoId productoId = ProductoId.from(linea.getProductoId());
+                if (!productoRepository.existsById(productoId)) {
+                    return Result.failure("Producto no encontrado con ID: " + linea.getProductoId());
+                }
+                Producto producto = productoRepository.findById(productoId).get();
+                if (linea.getCantidad() <= 0) {
+                    return Result.failure("La cantidad del producto con ID '" + linea.getProductoId() + "' debe ser mayor a 0");
+                }
+                ProductoVentaRequest lineaVenta = new ProductoVentaRequest(producto, linea.getCantidad());
+                lineaVentas.add(lineaVenta);
             }
+            var resultado = ventaService.crearVenta(cliente, lineaVentas);
+
             Venta saved = ventaRepository.save(resultado.getValue());
             return Result.success(ventaMapper.toDto(saved));
         } catch (Exception e) {
@@ -58,11 +92,48 @@ public class VentaApplicationService {
             if (ventaOpt.isEmpty()) {
                 return Result.failure("Venta no encontrada con ID: " + id);
             }
-            var resultado = ventaMapper.updateDomain(ventaOpt.get(), updateDto);
-            if (resultado.isFailure()) {
-                return Result.failure(resultado.getFirstError());
+            Venta venta = ventaOpt.get();
+            //
+             if (venta.getCliente() != null && !venta.getCliente().getId().equals(ClienteId.from(updateDto.getClienteId()))) {
+                    ClienteId nuevoClienteId = ClienteId.from(updateDto.getClienteId());
+                    if (!clienteRepository.existsById(nuevoClienteId)) {
+                        return Result.failure("Cliente no encontrado: " + updateDto.getClienteId());
+                    }
+                    Cliente cliente = clienteRepository.findById(nuevoClienteId).get();
+                    venta.setCliente(cliente);
             }
-            Venta saved = ventaRepository.save(resultado.getValue());
+            // Eliminar líneas que no están en el DTO
+             var toDelete = venta.getLineasVenta().stream()
+                .filter(linea -> updateDto.getLineasVenta() == null || updateDto.getLineasVenta().stream()
+                        .noneMatch(l -> l.getProductoId().equals(linea.getProductoId().getValue().toString())))
+                .collect(Collectors.toList());
+             toDelete.forEach(linea -> venta.removerLinea(linea.getProductoId()));
+
+             // Actualizar o agregar líneas
+             if (updateDto.getLineasVenta() != null) {
+                for (UpdateLineaVentaDTO lineaVentaDto : updateDto.getLineasVenta()) {
+                    ProductoId productoId = ProductoId.from(lineaVentaDto.getProductoId());
+                    Optional<Producto> productoOpt = productoRepository.findById(productoId);
+                    if (productoOpt.isEmpty()) {
+                        return Result.failure("Producto no encontrado: " + lineaVentaDto.getProductoId());
+                    }
+                    Producto producto = productoOpt.get();
+                    var existingLine = venta.buscarLineaExistente(productoId);
+                    if (existingLine != null) {
+                        var result = venta.actualizarLinea(producto, lineaVentaDto.getCantidad());
+                        if (result.isFailure()) {
+                            return Result.failure("Error al actualizar línea de venta: " + result.getFirstError());
+                        }
+                    } else {
+                        var result = venta.agregarLinea(producto, lineaVentaDto.getCantidad());
+                        if (result.isFailure()) {
+                            return Result.failure("Error al agregar línea de venta: " + result.getFirstError());
+                        }
+                    }
+                }
+            }
+            //Guardar cambios de venta
+            Venta saved = ventaRepository.save(venta);
             return Result.success(ventaMapper.toDto(saved));
         } catch (Exception e) {
             return Result.failure("Error al actualizar venta: " + e.getMessage());
@@ -109,6 +180,10 @@ public class VentaApplicationService {
             VentaId ventaId = VentaId.from(id);
             if (!ventaRepository.existsById(ventaId)) {
                 return Result.failure("Venta no encontrada con ID: " + id);
+            }
+            Venta venta = ventaRepository.findById(ventaId).get();
+            if (!venta.sePuedeEliminar()) {
+                return Result.failure("La venta no puede ser eliminada en su estado actual: " + venta.getEstado().getCodigo());
             }
             ventaRepository.deleteById(ventaId);
             return Result.success(true);

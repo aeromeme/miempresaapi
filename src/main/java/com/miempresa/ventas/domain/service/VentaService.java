@@ -7,19 +7,22 @@ import com.miempresa.ventas.domain.valueobject.ClienteId;
 import com.miempresa.ventas.domain.valueobject.Result;
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
 /**
  * Domain service for managing sales business logic that doesn't belong 
  * to any specific entity following DDD principles.
  */
+@Component
 public class VentaService {
     
     /**
      * Creates a new sale with the specified products and quantities
      */
-    public Result<Venta> crearVenta(ClienteId clienteId, List<ProductoVentaRequest> productos) {
-        return validarClienteId(clienteId)
+    public Result<Venta> crearVenta(Cliente cliente, List<ProductoVentaRequest> productos) {
+        return validarClienteId(cliente != null ? cliente.getId() : null)
             .flatMap(cId -> validarProductos(productos))
-            .flatMap(prods -> procesarVenta(clienteId, productos));
+            .flatMap(prods -> procesarVenta(cliente, productos));
     }
     
     private Result<ClienteId> validarClienteId(ClienteId clienteId) {
@@ -51,9 +54,9 @@ public class VentaService {
         return Result.success(productos);
     }
     
-    private Result<Venta> procesarVenta(ClienteId clienteId, List<ProductoVentaRequest> productos) {
-        Venta venta = new Venta(clienteId);
-        
+    private Result<Venta> procesarVenta(Cliente cliente, List<ProductoVentaRequest> productos) {
+        Venta venta = new Venta(cliente);
+
         for (ProductoVentaRequest request : productos) {
             Result<Void> resultado = venta.agregarLinea(request.getProducto(), request.getCantidad());
             if (resultado.isFailure()) {
@@ -91,7 +94,7 @@ public class VentaService {
     }
     
     private Result<Void> validarClienteCoincide(Venta venta, Cliente cliente) {
-        if (!venta.getClienteId().equals(cliente.getId())) {
+        if (!venta.getCliente().getId().equals(cliente.getId())) {
             return Result.failure("El cliente de la venta no coincide");
         }
         return Result.success();
@@ -127,7 +130,7 @@ public class VentaService {
      */
     public Result<Venta> procesarVentaCompleta(Cliente cliente, List<ProductoVentaRequest> productos) {
         return cliente.validarParaVenta()
-            .flatMap(v -> crearVenta(cliente.getId(), productos))
+            .flatMap(v -> crearVenta(cliente, productos))
             .flatMap(venta -> validarVenta(venta, cliente, productos.stream().map(ProductoVentaRequest::getProducto).toList())
                 .map(validation -> venta));
     }

@@ -55,7 +55,7 @@ public class VentaRepositoryImpl implements VentaRepository {
 
         // Alternativamente, filtrar manualmente:
         return ventaRepositoryJpa.findAll().stream()
-                .filter(v -> v.getClienteId() != null && v.getClienteId().equals(clienteId))
+                .filter(v -> v.getCliente() != null && v.getCliente().getId().equals(clienteId))
                 .toList();
     }
 

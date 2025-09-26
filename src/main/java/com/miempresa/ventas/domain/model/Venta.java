@@ -27,9 +27,6 @@ public class Venta extends BaseEntity {
     @Column(name = "fecha", nullable = false)
     private LocalDateTime fecha;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "cliente_id", columnDefinition = "uniqueidentifier"))
-    private ClienteId clienteId;
 
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LineaVenta> lineasVenta;
@@ -38,29 +35,33 @@ public class Venta extends BaseEntity {
     @Column(name = "estado", nullable = false)
     private EstadoVenta estado;
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "cliente_id", referencedColumnName = "id", nullable = false)
+    private Cliente cliente;
+
     // Constructor para crear nueva venta
-    public Venta(ClienteId clienteId) {
+    public Venta(Cliente cliente) {
         this.id = VentaId.generate();
         this.fecha = LocalDateTime.now();
-        this.clienteId = clienteId;
+        this.cliente = cliente;
         this.lineasVenta = new ArrayList<>();
         this.estado = EstadoVenta.EDICION;
 
-        if (clienteId == null) {
+        if (cliente == null) {
             throw new DomainException("El cliente no puede ser null");
         }
     }
 
     // Constructor para reconstruir desde persistencia
-    public Venta(VentaId id, LocalDateTime fecha, ClienteId clienteId, List<LineaVenta> lineasVenta,
+    public Venta(VentaId id, LocalDateTime fecha, Cliente cliente, List<LineaVenta> lineasVenta,
             EstadoVenta estado) {
         this.id = id;
         this.fecha = fecha;
-        this.clienteId = clienteId;
+        this.cliente = cliente;
         this.lineasVenta = new ArrayList<>(lineasVenta != null ? lineasVenta : new ArrayList<>());
         this.estado = estado != null ? estado : EstadoVenta.EDICION;
 
-        if (clienteId == null) {
+        if (cliente == null) {
             throw new DomainException("El cliente no puede ser null");
         }
     }
@@ -190,6 +191,9 @@ public class Venta extends BaseEntity {
                     return Result.success();
                 });
     }
+    public boolean sePuedeEliminar() {
+        return estado == EstadoVenta.EDICION || estado == EstadoVenta.CANCELADA;
+    }
 
     public boolean tieneLineas() {
         return !lineasVenta.isEmpty();
@@ -198,8 +202,8 @@ public class Venta extends BaseEntity {
     /**
      * Establece el cliente de la venta.
      */
-    public void setCliente(ClienteId clienteId) {
-        this.clienteId = clienteId;
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
     }
 
     // Getters
@@ -212,8 +216,8 @@ public class Venta extends BaseEntity {
         return fecha;
     }
 
-    public ClienteId getClienteId() {
-        return clienteId;
+    public Cliente getCliente() {
+        return cliente;
     }
 
     public List<LineaVenta> getLineasVenta() {
