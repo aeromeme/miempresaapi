@@ -40,27 +40,30 @@ Este proyecto es una API REST para la gestión de ventas, desarrollada con Java 
 ### Ejecución con Docker Compose
 
 1. Clona el repositorio.
- ```powershell
-   git clone https://github.com/aeromeme/miempresaventa.git
-   cd miempresaventa
-   ```
+
+```powershell
+  git clone https://github.com/aeromeme/miempresaventa.git
+  cd miempresaventa
+```
+
 ```powershell
    git clone https://github.com/aeromeme/miempresaapi.git
    cd miempresaapi
-   ```
+```
+
 2. Asegúrate de tener Docker y Docker Compose instalados.
-2.1  el backend,bd y frontend van a correr, unico requisito estar ambos proyectos en una misma carpeta
-3. Ejecuta el siguiente comando en la raíz del proyecto:
+3. el backend,bd y frontend van a correr, unico requisito estar ambos proyectos en una misma carpeta
+4. Ejecuta el siguiente comando en la raíz del proyecto:
 
 ```
 docker compose up --build
 ```
 
-4. Esto levantará la base de datos PostgreSQL y la aplicación en contenedores.
-5. La API estará disponible en `http://localhost:8080` y la base de datos en el puerto `5432`.
- SWAGGER en http://localhost:8080/swagger-ui/index.html
- Accede a la aplicación en [http://localhost](http://localhost)
-6. Para detener y eliminar los contenedores:
+5. Esto levantará la base de datos PostgreSQL y la aplicación en contenedores.
+6. La API estará disponible en `http://localhost:8080` y la base de datos en el puerto `5432`.
+7. SWAGGER en http://localhost:8080/swagger-ui/index.html
+8. Accede a la aplicación en [http://localhost](http://localhost)
+9. Para detener y eliminar los contenedores:
 
 ```
 docker compose down
