@@ -39,7 +39,7 @@ Este proyecto es una API REST para la gestión de ventas, desarrollada con Java 
 
 ### Ejecución con Docker Compose
 
-1. Clona el repositorio.
+1. Clona el repositorio en carpeta e.g. [repo].
 
 ```powershell
   git clone https://github.com/aeromeme/miempresaventa.git
@@ -52,7 +52,7 @@ Este proyecto es una API REST para la gestión de ventas, desarrollada con Java 
 ```
 
 2. Asegúrate de tener Docker y Docker Compose instalados.
-3. el backend,bd y frontend van a correr, unico requisito estar ambos proyectos en una misma carpeta
+3. el backend,bd y frontend van a correr, unico requisito estar ambos proyectos en una misma carpeta e.g.[repo]
 4. Ejecuta el siguiente comando en la raíz del proyecto:
 
 ```
