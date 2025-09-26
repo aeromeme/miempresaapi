@@ -61,8 +61,8 @@ docker compose up --build
 
 5. Esto levantará la base de datos PostgreSQL y la aplicación en contenedores.
 6. La API estará disponible en `http://localhost:8080` y la base de datos en el puerto `5432`.
-7. SWAGGER en http://localhost:8080/swagger-ui/index.html
-8. Accede a la aplicación en [http://localhost](http://localhost)
+7. SWAGGER en `http://localhost:8080/swagger-ui/index.html`
+8. Accede a la aplicación en `http://localhost`
 9. Para detener y eliminar los contenedores:
 
 ```
