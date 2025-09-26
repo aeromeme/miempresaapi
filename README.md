@@ -44,7 +44,7 @@ Este proyecto es una API REST para la gestión de ventas, desarrollada con Java 
    git clone https://github.com/aeromeme/miempresaventa.git
    cd miempresaventa
    ```
-    ```powershell
+```powershell
    git clone https://github.com/aeromeme/miempresaapi.git
    cd miempresaapi
    ```
